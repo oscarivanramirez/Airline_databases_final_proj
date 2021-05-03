@@ -50,13 +50,52 @@ def searchingFlights():
 #flightRatings
 @app.route('/flightRatings', methods=['GET', 'POST'])
 def flightRatings():
-    	
-    return render_template
+    cursor = conn.cursor()
+	#make a query
+	#WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
+    email=session['email']
+    query = 'SELECT airline_name FROM Staff WHERE username=%s'
+    cursor.execute(query, (email))
+	#stores the results in a variable
+    data2 = cursor.fetchone()
+    print(data2)
+    cursor.close()
+    cursor = conn.cursor()
+    query = 'SELECT * FROM Feedback WHERE airline_name=%s'
+    cursor.execute(query, (data2['airline_name']))
+	#stores the results in a variable
+    data2 = cursor.fetchone()
+    print(data2)
+	#GROUP BY (flight_number,depart_date,depart_time)
+    query = 'SELECT avg(ratings) FROM Feedback WHERE airline_name=%s'
+    cursor.execute(query, (data2['airline_name']))
+	#stores the results in a variable
+    data2 = cursor.fetchone()
+    print(data2)
+    cursor.close()
+    return render_template()
 
 #View Booking agents
 @app.route('/ViewBookingAgents', methods=['GET', 'POST'])
 def ViewBookingAgents():
-    	
+    cursor = conn.cursor()
+	#WHERE   create_date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+	#where month(order_date)=month(now())-1;
+    query = 'SELECT * FROM Ticket NATURAL JOIN Purchase_by_BA WHERE purchase_date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE() '
+    cursor.execute(query, (data2))
+	#stores the results in a variable
+    data2 = cursor.fetchone()
+    print(data2)
+    cursor.close()
+    cursor = conn.cursor()
+	#WHERE   create_date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+	#where month(order_date)=month(now())-1;
+    query = 'SELECT * FROM Ticket NATURAL JOIN Purchase_by_BA WHERE purchase_date BETWEEN CURDATE() - INTERVAL 1 YEAR AND CURDATE() '
+    cursor.execute(query, (data2))
+	#stores the results in a variable
+    data2 = cursor.fetchone()
+    print(data2)
+    cursor.close()
     return render_template
     	
 #/frequentCustomers
@@ -64,20 +103,99 @@ def ViewBookingAgents():
 def frequentCustomers():
     	
     return render_template
+
+@app.route('/createNewFlights', methods=['GET','POST'])
+def createNewFlights():
+    	
+	email=session['email']
+	cursor = conn.cursor()
+	#make a query
+	#WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
+	query = 'SELECT airline_name FROM Staff WHERE username=%s'
+	email=session['email']
+	cursor.execute(query, (email))
+	#stores the results in a variable
+	data2 = cursor.fetchone()
+	print(data2['airline_name'])
+	cursor.close()
+	airplaneID=request.form['airplaneID']
+	flightNum=request.form['flightNum']
+	departTime=request.form['departTime']
+	departDate=request.form['departDate']
+	arrivalTime=request.form['arrivalTime']
+	arrivalDate=request.form['arrivalDate']
+	basePrice=request.form['basePrice']
+	airportNameArr=request.form['airportNameArr']
+	airportNameDep=request.form['airportNameDep']
+	statusF=request.form['statusF']
+	print(airplaneID,'airplane ID')
+	cursor = conn.cursor()
+	#make a query
+	#WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
+	query = 'INSERT into Flight (airline_name,airplane_ID,flight_number,depart_time,depart_date,arrival_date,arrival_time,base_price,airport_name_arrival,airport_name_depart,status_F)\
+		values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+	email=session['email']
+	cursor.execute(query, (data2['airline_name'],airplaneID,flightNum,departTime,departDate,arrivalDate,arrivalTime,basePrice,airportNameArr,airportNameDep,statusF))
+	#stores the results in a variable
+	conn.commit()
+	cursor.close()
+	return render_template('airline_staff.html')
     
+@app.route('/createNewAirplane',methods=['GET','POST'])
+def createNewAirplane():
+    
+	email=session['email']
+	cursor=conn.cursor()
+	query = 'SELECT airline_name FROM Staff WHERE username=%s'
+	cursor.execute(query, (email))
+	#stores the results in a variable
+	data2 = cursor.fetchone()
+	print(data2)
+	cursor.close()
+	cursor=conn.cursor()
+	airplaneID=request.form['airplaneID']
+	seats=request.form['seats']
+	query = 'INSERT into Flight (airplane_ID,flight_number,airline_name)values (%s,%s,%s)'
+	cursor.execute(query, (airplaneID,seats,data2['airline_name']))
+	#stores the results in a variable
+	conn.commit()
+	cursor.close()
+	return render_template('airline_staff.html')
+
+@app.route('/createNewAirport',methods=['GET','POST'])
+def createNewAirport():
+    	
+	email=session['email']
+	cursor=conn.cursor()
+	query = 'SELECT airline_name FROM Staff WHERE username=%s'
+	cursor.execute(query, (email))
+	#stores the results in a variable
+	data2 = cursor.fetchone()
+	print(data2)
+	cursor.close()
+	cursor=conn.cursor()
+	city=request.form['city']
+	query = 'INSERT into Flight (airplane_ID,flight_number,airline_name)values (%s,%s,%s)'
+	cursor.execute(query, (airplaneID,seats,data2['airline_name']))
+	#stores the results in a variable
+	conn.commit()
+	cursor.close()
+	return render_template('airline_staff.html')
 @app.route('/defaultFlights',methods=['GET','POST'])
-def defaultsFlights():
+def defaultFlights():
     	
 	cursor = conn.cursor()
 	#make a query
-	query = 'SELECT * FROM Staff Natural Join Flight WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
-	cursor.execute(query, ())
+	#WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
+	query = 'SELECT * FROM Staff Natural Join Flight WHERE username=%s and depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
+	email=session['email']
+	cursor.execute(query, (email))
 	#stores the results in a variable
 	data = cursor.fetchall()
 	print(data)
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-    return render_template('airline_staff.html',flights=data)
+	return render_template('airline_staff.html',flights=data)
     
 #this one is airline staff
 @app.route('/viewFlights', methods=['GET', 'POST'])
@@ -88,22 +206,12 @@ def viewFlights():
 	toCiorAirport = request.form['toCiorAirport']
 	departDate = request.form['departDate']
 	returnDate = request.form['returnDate']
+	email=session['email']
 	#need a default arg
-	'''
 	cursor = conn.cursor()
 	#make a query
-	query = 'SELECT * FROM Staff Natural Join Flight WHERE depart_date < CURDATE() + INTERVAL 30 DAY and CURDATE() < depart_date'
-	cursor.execute(query, ())
-	#stores the results in a variable
-	data = cursor.fetchall()
-	print(data)
-	#use fetchall() if you are expecting more than 1 data row
-	cursor.close()
-	'''
-	cursor = conn.cursor()
-	#make a query
-	query = 'SELECT * FROM Staff Natural Join Flight WHERE airline_name = %s and flight_number = %s and depart_date = %s'
-	cursor.execute(query, (airlineName,flightNum,departDate))
+	query = 'SELECT * FROM Staff Natural Join Flight WHERE username=%s and airport_name_arrival = %s and airport_name_depart = %s and depart_date = %s and arrival_date=%s'
+	cursor.execute(query, (email,airlineName,flightNum,departDate,returnDate))
 	#stores the results in a variable
 	data = cursor.fetchall()
 	print(data)
@@ -141,6 +249,7 @@ def loginAuth():
 	cursor.execute(query, (email, password))
 	#stores the results in a variable
 	staff = cursor.fetchone()
+	print(staff)
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	error = None
@@ -155,7 +264,8 @@ def loginAuth():
 	elif(staff):
     		
 		session['email'] = email
-		return redirect(url_for('defaultFlights'))
+		print(email,'looooooogginnn')
+		return redirect(url_for('defaultFlights',email=email))
 	else:
     	
 		error = 'Invalid login or username'
